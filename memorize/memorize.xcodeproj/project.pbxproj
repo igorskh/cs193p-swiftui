@@ -19,11 +19,11 @@
 		CB58997324E974BA001BB5E1 /* GridLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB58997224E974BA001BB5E1 /* GridLayout.swift */; };
 		CB58997524E97831001BB5E1 /* Array+Identifiable.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB58997424E97831001BB5E1 /* Array+Identifiable.swift */; };
 		CB58997724E9828E001BB5E1 /* Array+Only.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB58997624E9828E001BB5E1 /* Array+Only.swift */; };
-		CB58997924E9A660001BB5E1 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CB58997824E9A660001BB5E1 /* Default-568h@2x.png */; };
+		CB58997B24E9A84E001BB5E1 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CB58997A24E9A84E001BB5E1 /* Default-568h@2x.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		CB50F18524E91C8F0039FAB3 /* cs193p-swiftui.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "cs193p-swiftui.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CB50F18524E91C8F0039FAB3 /* memorize.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = memorize.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CB50F18824E91C8F0039FAB3 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		CB50F18A24E91C8F0039FAB3 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		CB50F18C24E91C8F0039FAB3 /* EmojiMemoryGameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmojiMemoryGameView.swift; sourceTree = "<group>"; };
@@ -37,7 +37,7 @@
 		CB58997224E974BA001BB5E1 /* GridLayout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GridLayout.swift; sourceTree = "<group>"; };
 		CB58997424E97831001BB5E1 /* Array+Identifiable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Array+Identifiable.swift"; sourceTree = "<group>"; };
 		CB58997624E9828E001BB5E1 /* Array+Only.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Array+Only.swift"; sourceTree = "<group>"; };
-		CB58997824E9A660001BB5E1 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
+		CB58997A24E9A84E001BB5E1 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -54,8 +54,8 @@
 		CB50F17C24E91C8F0039FAB3 = {
 			isa = PBXGroup;
 			children = (
-				CB58997824E9A660001BB5E1 /* Default-568h@2x.png */,
-				CB50F18724E91C8F0039FAB3 /* cs193p-swiftui */,
+				CB58997A24E9A84E001BB5E1 /* Default-568h@2x.png */,
+				CB50F18724E91C8F0039FAB3 /* memorize */,
 				CB50F18624E91C8F0039FAB3 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -63,12 +63,12 @@
 		CB50F18624E91C8F0039FAB3 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				CB50F18524E91C8F0039FAB3 /* cs193p-swiftui.app */,
+				CB50F18524E91C8F0039FAB3 /* memorize.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		CB50F18724E91C8F0039FAB3 /* cs193p-swiftui */ = {
+		CB50F18724E91C8F0039FAB3 /* memorize */ = {
 			isa = PBXGroup;
 			children = (
 				CB50F19C24E92B190039FAB3 /* MemoryGame.swift */,
@@ -85,7 +85,7 @@
 				CB50F19624E91C910039FAB3 /* Info.plist */,
 				CB50F19024E91C910039FAB3 /* Preview Content */,
 			);
-			path = "cs193p-swiftui";
+			path = memorize;
 			sourceTree = "<group>";
 		};
 		CB50F19024E91C910039FAB3 /* Preview Content */ = {
@@ -99,9 +99,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		CB50F18424E91C8F0039FAB3 /* cs193p-swiftui */ = {
+		CB50F18424E91C8F0039FAB3 /* memorize */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = CB50F19924E91C910039FAB3 /* Build configuration list for PBXNativeTarget "cs193p-swiftui" */;
+			buildConfigurationList = CB50F19924E91C910039FAB3 /* Build configuration list for PBXNativeTarget "memorize" */;
 			buildPhases = (
 				CB50F18124E91C8F0039FAB3 /* Sources */,
 				CB50F18224E91C8F0039FAB3 /* Frameworks */,
@@ -111,9 +111,9 @@
 			);
 			dependencies = (
 			);
-			name = "cs193p-swiftui";
+			name = memorize;
 			productName = CS193p;
-			productReference = CB50F18524E91C8F0039FAB3 /* cs193p-swiftui.app */;
+			productReference = CB50F18524E91C8F0039FAB3 /* memorize.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -131,7 +131,7 @@
 					};
 				};
 			};
-			buildConfigurationList = CB50F18024E91C8F0039FAB3 /* Build configuration list for PBXProject "cs193p-swiftui" */;
+			buildConfigurationList = CB50F18024E91C8F0039FAB3 /* Build configuration list for PBXProject "memorize" */;
 			compatibilityVersion = "Xcode 9.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -144,7 +144,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				CB50F18424E91C8F0039FAB3 /* cs193p-swiftui */,
+				CB50F18424E91C8F0039FAB3 /* memorize */,
 			);
 		};
 /* End PBXProject section */
@@ -155,7 +155,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CB50F19524E91C910039FAB3 /* LaunchScreen.storyboard in Resources */,
-				CB58997924E9A660001BB5E1 /* Default-568h@2x.png in Resources */,
+				CB58997B24E9A84E001BB5E1 /* Default-568h@2x.png in Resources */,
 				CB50F19224E91C910039FAB3 /* Preview Assets.xcassets in Resources */,
 				CB50F18F24E91C910039FAB3 /* Assets.xcassets in Resources */,
 			);
@@ -316,13 +316,13 @@
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = P3VKCDARX4;
 				ENABLE_PREVIEWS = YES;
-				INFOPLIST_FILE = "cs193p-swiftui/Info.plist";
+				INFOPLIST_FILE = memorize/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "one.beagile.cs193p-swiftui";
-				PRODUCT_NAME = "cs193p-swiftui";
+				PRODUCT_BUNDLE_IDENTIFIER = "one.beagile.cs193p-memorize";
+				PRODUCT_NAME = memorize;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -336,13 +336,13 @@
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = P3VKCDARX4;
 				ENABLE_PREVIEWS = YES;
-				INFOPLIST_FILE = "cs193p-swiftui/Info.plist";
+				INFOPLIST_FILE = memorize/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "one.beagile.cs193p-swiftui";
-				PRODUCT_NAME = "cs193p-swiftui";
+				PRODUCT_BUNDLE_IDENTIFIER = "one.beagile.cs193p-memorize";
+				PRODUCT_NAME = memorize;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -351,7 +351,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		CB50F18024E91C8F0039FAB3 /* Build configuration list for PBXProject "cs193p-swiftui" */ = {
+		CB50F18024E91C8F0039FAB3 /* Build configuration list for PBXProject "memorize" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				CB50F19724E91C910039FAB3 /* Debug */,
@@ -360,7 +360,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		CB50F19924E91C910039FAB3 /* Build configuration list for PBXNativeTarget "cs193p-swiftui" */ = {
+		CB50F19924E91C910039FAB3 /* Build configuration list for PBXNativeTarget "memorize" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				CB50F19A24E91C910039FAB3 /* Debug */,

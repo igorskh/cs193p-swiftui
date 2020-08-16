@@ -2,6 +2,6 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "self:/Users/igorkim/Developer/xcode/cs193p-swiftui/cs193p-swiftui.xcodeproj">
+      location = "self:/Users/igorkim/Developer/xcode/cs193p-swiftui/memorize/memorize.xcodeproj">
    </FileRef>
 </Workspace>

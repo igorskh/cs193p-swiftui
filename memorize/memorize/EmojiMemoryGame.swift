@@ -50,11 +50,11 @@ class EmojiMemoryGame: ObservableObject {
     // MARK: - intent(s)
     
     func chooseCard(card: MemoryGame<String>.Card) {
-        if model.isFinished {
-            newGame()
-        } else {
-            model.choose(card: card)
-        }
+        model.choose(card: card)
+    }
+    
+    func flipAllCardsDown() {
+        model.flipAllCardsDown()
     }
 }
 

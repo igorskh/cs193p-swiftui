@@ -9,14 +9,15 @@
 import Foundation
 
 struct MemoryGame<CardContent> where CardContent: Equatable {
-    var cards: Array<Card>
+    private(set) var cards: Array<Card>
     var score: Int = 0
     var isFinished: Bool {
         get {
             return cards.indices.filter { cards[$0].isMatched }.count == cards.count
         }
     }
-    var indexOfFaceUpCard: Int? {
+    
+    private var indexOfFaceUpCard: Int? {
         get {
             return cards.indices.filter { cards[$0].isFaceUp }.only
         }
@@ -27,17 +28,7 @@ struct MemoryGame<CardContent> where CardContent: Equatable {
         }
     }
     
-    init(numberOfPairsOfCards: Int, cardContentFactory: (Int) -> CardContent) {
-        cards = Array<Card>()
-        for i in 0..<numberOfPairsOfCards {
-            let content = cardContentFactory(i);
-            cards.append(Card(id: i*2, content: content))
-            cards.append(Card(id: i*2+1, content: content))
-        }
-        cards.shuffle()
-    }
-    
-    mutating func scoreMatch(firstIndex: Int, secondIndex: Int) {
+    mutating private func scoreMatch(firstIndex: Int, secondIndex: Int) {
         if cards[firstIndex].content == cards[secondIndex].content {
             // Matched
             cards[firstIndex].isMatched = true
@@ -63,6 +54,16 @@ struct MemoryGame<CardContent> where CardContent: Equatable {
                 indexOfFaceUpCard = chosenIndex
             }
         }
+    }
+    
+    init(numberOfPairsOfCards: Int, cardContentFactory: (Int) -> CardContent) {
+        cards = Array<Card>()
+        for i in 0..<numberOfPairsOfCards {
+            let content = cardContentFactory(i);
+            cards.append(Card(id: i*2, content: content))
+            cards.append(Card(id: i*2+1, content: content))
+        }
+        cards.shuffle()
     }
     
     struct Card: Identifiable {

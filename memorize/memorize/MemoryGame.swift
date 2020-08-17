@@ -58,6 +58,7 @@ struct MemoryGame<CardContent> where CardContent: Equatable {
 
     mutating func flipAllCardsDown() {
         for index in 0..<cards.count {
+            cards[index].isMatched = false
             cards[index].isFaceUp = false
         }
     }

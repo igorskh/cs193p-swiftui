@@ -39,6 +39,10 @@ class EmojiMemoryGame: ObservableObject {
     
     // MARK: - access to the model
     
+    var isFinished: Bool {
+        model.isFinished
+    }
+    
     var cards: Array<MemoryGame<String>.Card> {
         model.cards
     }

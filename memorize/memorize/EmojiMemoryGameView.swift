@@ -11,16 +11,31 @@ import SwiftUI
 struct EmojiMemoryGameView: View {
     @ObservedObject var viewModel: EmojiMemoryGame
     
+    func newGame() {
+        // TODO: Animate fipping cards down
+        viewModel.flipAllCardsDown()
+        withAnimation(.easeInOut) {
+            self.viewModel.newGame()
+        }
+    }
+    
     var body: some View {
         VStack {
             Spacer()
             HStack {
-                Text("\(viewModel.score)").font(.largeTitle).padding()
+                Text("\(viewModel.score)")
+                    .font(.largeTitle)
+                    .padding()
+                    .animation(.none)
             }
             Grid(self.viewModel.cards) {card in
                 CardView(card: card).onTapGesture {
-                    withAnimation(.linear(duration: 0.75)) {
-                        self.viewModel.chooseCard(card: card)
+                    if self.viewModel.isFinished {
+                        self.newGame()
+                    } else {
+                        withAnimation(.linear(duration: 0.75)) {
+                            self.viewModel.chooseCard(card: card)
+                        }
                     }
                 }
                 .padding(5)
@@ -31,18 +46,12 @@ struct EmojiMemoryGameView: View {
             
             HStack {
                 Button("New Game") {
-                    withAnimation(Animation.easeInOut(duration: 0.5)) {
-                        self.viewModel.flipAllCardsDown()
-                    }
-                    // TODO: make proper handling of images appearing earlier
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-                        withAnimation(.easeInOut) {
-                            self.viewModel.newGame()
-                        }
-                    }
+                    self.newGame()
                 }.padding()
-                Text(viewModel.theme.name).padding()
+                
+                Text(viewModel.theme.name) .padding()
             }
+            .animation(.none)
         }
     }
 }
@@ -74,16 +83,18 @@ struct CardView: View {
                             startAngle: Angle.degrees(0-90),
                             endAngle: Angle.degrees(-animatedBonusRemaining*360-90)
                         ).onAppear {self.startBonusTimeAnimation()}
+                            .transition(.scale)
                     } else {
                         Pie(
                             startAngle: Angle.degrees(0-90),
                             endAngle: Angle.degrees(-card.bonusRemaining*360-90)
-                        )
+                        ).transition(.identity)
                         
                     }
                 }
-                .padding(2).opacity(0.4)
-                .transition(.scale)
+                .padding(2)
+                .opacity(0.4)
+                
                 
                 Text(card.content)
                     .font(.system(size: fontSize(for: size)))

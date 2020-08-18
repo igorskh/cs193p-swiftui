@@ -28,6 +28,14 @@ class EmojiArtDocument: ObservableObject {
     
     // MARK: - Intent(s)
     
+    func removeEmoji(_ emoji: EmojiArt.Emoji) {
+        emojiArt.removeEmoji(emoji)
+    }
+    
+    func clearEmojis() {
+        emojiArt.clearEmojis()
+    }
+    
     func addEmoji(_ emoji: String, at location: CGPoint, size: CGFloat) {
         emojiArt.addEmoji(emoji, x: Int(location.x), y: Int(location.y), size: Int(size))
     }

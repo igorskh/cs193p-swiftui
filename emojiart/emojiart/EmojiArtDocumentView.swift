@@ -22,6 +22,8 @@ struct EmojiArtDocumentView: View {
                     }
                 }
             }.padding(.horizontal)
+            
+            
             GeometryReader { geometry in
                 ZStack {
                     Color.white.overlay(
@@ -29,11 +31,21 @@ struct EmojiArtDocumentView: View {
                             .scaleEffect(self.zoomScale)
                             .offset(self.panOffset)
                     )
+                        // TODO: deal with delay on single tap ?
                         .gesture(self.doubleTapToZoom(in: geometry.size))
+                        .gesture(self.tapToUnselect())
+                    
+                    
                     ForEach(self.document.emojis) {emoji in
-                        Text(emoji.text)
-                            .font(animatableWithSize: emoji.fontSize*self.zoomScale)
-                            .position(self.position(for: emoji, in: geometry.size))
+                        ZStack {
+                            Text(emoji.text)
+                                .border(Color.gray, width: self.emojiSelection.contains(matching: emoji) ? 2 : 0)
+                                .font(animatableWithSize: emoji.fontSize*self.zoomScale*(self.emojiSelection.contains(matching: emoji) ? self.emojiZoomScale : 1.0))
+                                .position(self.position(for: emoji, in: geometry.size))
+                                .onTapGesture {
+                                    self.toggleSelection(emoji: emoji)
+                            }
+                        }
                     }
                 }
                 .clipped()
@@ -47,16 +59,55 @@ struct EmojiArtDocumentView: View {
                     location = CGPoint(x: location.x / self.zoomScale, y: location.y / self.zoomScale)
                     return self.drop(providers: providers, at: location)
                 }
-                
+            }
+            
+            ScrollView(.horizontal) {
+                HStack {
+                    
+                    Button(action: {
+                        self.document.clearEmojis()
+                        self.document.setBackgroundURL(nil)
+                    }) {
+                        Image(systemName: "clear")
+                    }
+                    if emojiSelection.count > 0 {
+                        Button(action: {
+                            while self.emojiSelection.count > 0 {
+                                let emoji = self.emojiSelection.popLast()!
+                                self.document.removeEmoji(emoji)
+                            }
+                        }) {
+                            Image(systemName: "trash")
+                        }
+                    }
+                    
+                }.padding(10.0)
+                    .font(.largeTitle)
             }
         }
     }
     
     @State private var steadyStateZoomScale: CGFloat = 1.0
+    @State private var emojiSelection = [EmojiArt.Emoji]()
     @GestureState private var gestureZoomScale: CGFloat = 1.0
+    @GestureState private var emojiZoomScale: CGFloat = 1.0
+    
+    private func toggleSelection(emoji: EmojiArt.Emoji) {
+        if let i = emojiSelection.firstIndex(matching: emoji) {
+            emojiSelection.remove(at: i)
+        } else {
+            emojiSelection.append(emoji)
+        }
+    }
     
     private var zoomScale: CGFloat {
         steadyStateZoomScale * gestureZoomScale
+    }
+    
+    private func tapToUnselect()-> some Gesture  {
+        TapGesture().onEnded {
+            self.emojiSelection.removeAll()
+        }
     }
     
     private func doubleTapToZoom(in size: CGSize) -> some Gesture {
@@ -69,16 +120,23 @@ struct EmojiArtDocumentView: View {
     
     private func zoomGesture() -> some Gesture {
         MagnificationGesture()
-            .updating($gestureZoomScale) { latestGestureScale, gestureZoomScale, _ in
+            .updating(emojiSelection.count > 0 ? $emojiZoomScale : $gestureZoomScale) { latestGestureScale, gestureZoomScale, transaction in
                 gestureZoomScale = latestGestureScale
         }
         .onEnded { finalGestureScale in
-            self.steadyStateZoomScale *= finalGestureScale
+            if self.emojiSelection.count > 0 {
+                for i in 0..<self.emojiSelection.count {
+                    self.document.scaleEmoji(self.emojiSelection[i], by: finalGestureScale)
+                }
+            } else {
+                self.steadyStateZoomScale *= finalGestureScale
+            }
         }
     }
     
     @State private var steadyStatePanOffset: CGSize = .zero
     @GestureState private var gesturePanOffset: CGSize = .zero
+    @GestureState private var gestureEmojiOffset: CGSize = .zero
     
     private var panOffset: CGSize {
         (steadyStatePanOffset + gesturePanOffset) * zoomScale
@@ -86,11 +144,21 @@ struct EmojiArtDocumentView: View {
     
     private func panGesture() -> some Gesture {
         DragGesture()
-            .updating($gesturePanOffset) { latestDragGestureValue, gesturePanOffset, _ in
-                gesturePanOffset = latestDragGestureValue.translation / self.zoomScale
+            .updating(emojiSelection.count > 0 ? $gestureEmojiOffset : $gesturePanOffset) { latestDragGestureValue, gesturePanOffset, _ in
+                if self.emojiSelection.count > 0 {
+                    gesturePanOffset = latestDragGestureValue.translation
+                } else {
+                    gesturePanOffset = latestDragGestureValue.translation / self.zoomScale
+                }
         }
         .onEnded { finalDragGestureValue in
-            self.steadyStatePanOffset = self.steadyStatePanOffset + (finalDragGestureValue.translation / self.zoomScale)
+            if self.emojiSelection.count > 0 {
+                for i in 0..<self.emojiSelection.count {
+                    self.document.moveEmoji(self.emojiSelection[i], by: finalDragGestureValue.translation / self.zoomScale)
+                }
+            } else {
+                self.steadyStatePanOffset = self.steadyStatePanOffset + (finalDragGestureValue.translation / self.zoomScale)
+            }
         }
     }
     
@@ -108,6 +176,9 @@ struct EmojiArtDocumentView: View {
         location = CGPoint(x: location.x * zoomScale, y: location.y * zoomScale)
         location = CGPoint(x: location.x + size.width/2, y: location.y + size.height/2)
         location = CGPoint(x: location.x + panOffset.width, y: location.y + panOffset.height)
+        if self.emojiSelection.contains(matching: emoji) {
+            location = CGPoint(x: location.x + gestureEmojiOffset.width, y: location.y + gestureEmojiOffset.height)
+        }
         return location
     }
     

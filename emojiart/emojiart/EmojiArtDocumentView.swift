@@ -43,8 +43,9 @@ struct EmojiArtDocumentView: View {
                                 .font(animatableWithSize: emoji.fontSize*self.zoomScale*(self.emojiSelection.contains(matching: emoji) ? self.emojiZoomScale : 1.0))
                                 .position(self.position(for: emoji, in: geometry.size))
                                 .onTapGesture {
-                                    self.toggleSelection(emoji: emoji)
+                                    self.toggleEmojiSelection(emoji)
                             }
+                            .gesture(self.dragEmojiGesture(emoji))
                         }
                     }
                 }
@@ -92,7 +93,7 @@ struct EmojiArtDocumentView: View {
     @GestureState private var gestureZoomScale: CGFloat = 1.0
     @GestureState private var emojiZoomScale: CGFloat = 1.0
     
-    private func toggleSelection(emoji: EmojiArt.Emoji) {
+    private func toggleEmojiSelection(_ emoji: EmojiArt.Emoji) {
         if let i = emojiSelection.firstIndex(matching: emoji) {
             emojiSelection.remove(at: i)
         } else {
@@ -137,9 +138,21 @@ struct EmojiArtDocumentView: View {
     @State private var steadyStatePanOffset: CGSize = .zero
     @GestureState private var gesturePanOffset: CGSize = .zero
     @GestureState private var gestureEmojiOffset: CGSize = .zero
+    @GestureState private var singleMovedEmoji = MovingEmojiGesture()
     
     private var panOffset: CGSize {
         (steadyStatePanOffset + gesturePanOffset) * zoomScale
+    }
+    
+    private func dragEmojiGesture(_ emoji: EmojiArt.Emoji) -> some Gesture {
+        return DragGesture()
+            .updating($singleMovedEmoji) { latestDragGestureValue, singleMovedEmoji, _ in
+                singleMovedEmoji.emoji = emoji
+                singleMovedEmoji.pan = latestDragGestureValue.translation
+        }.onEnded{ finalDragGestureValue in
+            self.document.moveEmoji(emoji, by: finalDragGestureValue.translation / self.zoomScale)
+        }
+        
     }
     
     private func panGesture() -> some Gesture {
@@ -176,6 +189,9 @@ struct EmojiArtDocumentView: View {
         location = CGPoint(x: location.x * zoomScale, y: location.y * zoomScale)
         location = CGPoint(x: location.x + size.width/2, y: location.y + size.height/2)
         location = CGPoint(x: location.x + panOffset.width, y: location.y + panOffset.height)
+        if let selectedEmoji = singleMovedEmoji.emoji, selectedEmoji.id == emoji.id {
+            location = CGPoint(x: location.x + singleMovedEmoji.pan.width, y: location.y + singleMovedEmoji.pan.height)
+        }
         if self.emojiSelection.contains(matching: emoji) {
             location = CGPoint(x: location.x + gestureEmojiOffset.width, y: location.y + gestureEmojiOffset.height)
         }
@@ -195,4 +211,9 @@ struct EmojiArtDocumentView: View {
     }
     
     private let defaultEmojiSize: CGFloat = 40
+
+    struct MovingEmojiGesture {
+        var emoji: EmojiArt.Emoji?
+        var pan: CGSize = .zero
+    }
 }

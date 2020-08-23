@@ -10,23 +10,31 @@ import SwiftUI
 
 struct EmojiArtDocumentView: View {
     @ObservedObject var document: EmojiArtDocument
+    @State private var chosenPalette: String = ""
+    
+    init(document: EmojiArtDocument) {
+        self.document = document
+        _chosenPalette = State(wrappedValue: self.document.defaultPalette)
+    }
     
     var body: some View {
         VStack {
-            ScrollView(.horizontal) {
-                HStack {
-                    ForEach(EmojiArtDocument.palette.map{ String($0) }, id: \.self) {emoji in
-                        Text(emoji)
-                            .font(Font.system(size: self.defaultEmojiSize))
-                            .onDrag{ NSItemProvider(object: emoji as NSString) }
+            HStack {
+                PaletteChooser(document: document, chosenPalette: $chosenPalette)
+                ScrollView(.horizontal) {
+                    HStack {
+                        ForEach(chosenPalette.map{ String($0) }, id: \.self) {emoji in
+                            Text(emoji)
+                                .font(Font.system(size: self.defaultEmojiSize))
+                                .onDrag{ NSItemProvider(object: emoji as NSString) }
+                        }
                     }
                 }
             }.padding(.horizontal)
             
-            
             GeometryReader { geometry in
                 ZStack {
-                    Color.white.overlay(
+                    Color.black.overlay(
                         OptionalImage(uiImage: self.document.backgroundImage)
                             .scaleEffect(self.zoomScale)
                             .offset(self.panOffset)
@@ -35,24 +43,46 @@ struct EmojiArtDocumentView: View {
                         .gesture(self.doubleTapToZoom(in: geometry.size))
                         .gesture(self.tapToUnselect())
                     
-                    
-                    ForEach(self.document.emojis) {emoji in
-                        ZStack {
-                            Text(emoji.text)
-                                .border(Color.gray, width: self.emojiSelection.contains(matching: emoji) ? 2 : 0)
-                                .font(animatableWithSize: emoji.fontSize*self.zoomScale*(self.emojiSelection.contains(matching: emoji) ? self.emojiZoomScale : 1.0))
-                                .position(self.position(for: emoji, in: geometry.size))
-                                .onTapGesture {
-                                    self.toggleEmojiSelection(emoji)
+                    if self.isLoading {
+                        Image(systemName: "hourglass").imageScale(.large).spinning()
+                    } else {
+                        ForEach(self.document.emojis) {emoji in
+                            ZStack {
+                                Text(emoji.text)
+                                    .border(Color.gray, width: self.emojiSelection.contains(matching: emoji) ? 2 : 0)
+                                    .font(animatableWithSize: emoji.fontSize*self.zoomScale*(self.emojiSelection.contains(matching: emoji) ? self.emojiZoomScale : 1.0))
+                                    .position(self.position(for: emoji, in: geometry.size))
+                                    .onTapGesture {
+                                        self.toggleEmojiSelection(emoji)
+                                }
+                                .gesture(self.dragEmojiGesture(emoji))
                             }
-                            .gesture(self.dragEmojiGesture(emoji))
                         }
                     }
                 }
-                .clipped()
                 .gesture(self.panGesture())
                 .gesture(self.zoomGesture())
-                .edgesIgnoringSafeArea([.horizontal, .bottom])
+                .onReceive(self.document.$backgroundImage) {image in
+                    self.zoomToFit(image, in: geometry.size)
+                }
+                .navigationBarItems(
+                    trailing: Button(action: {
+                        if let url = UIPasteboard.general.url, url != self.document.backgroundURL {
+                            self.confirmBackgroundPaste = true
+                        } else {
+                            self.explainBackgroundPaste = true
+                        }
+                    }, label: {
+                        Image(systemName: "doc.on.clipboard").imageScale(.large)
+                            .alert(isPresented: self.$explainBackgroundPaste, content: {
+                                return Alert(
+                                    title: Text("Paste Background"),
+                                    message: Text("Copy URL of an image to the clipboard and touch this button to make it the background of your document."),
+                                    dismissButton: .default(Text("OK"))
+                                )
+                            })
+                    })
+                )
                 .onDrop(of: ["public.image", "public.text"], isTargeted: nil) { providers, location in
                     var location = geometry.convert(location, from: .global)
                     location = CGPoint(x: location.x - geometry.size.width/2, y: location.y - geometry.size.height/2)
@@ -60,14 +90,14 @@ struct EmojiArtDocumentView: View {
                     location = CGPoint(x: location.x / self.zoomScale, y: location.y / self.zoomScale)
                     return self.drop(providers: providers, at: location)
                 }
-            }
+            }.zIndex(-1)
             
             ScrollView(.horizontal) {
                 HStack {
                     
                     Button(action: {
                         self.document.clearEmojis()
-                        self.document.setBackgroundURL(nil)
+                        self.document.backgroundURL = nil
                     }) {
                         Image(systemName: "clear")
                     }
@@ -86,9 +116,21 @@ struct EmojiArtDocumentView: View {
                     .font(.largeTitle)
             }
         }
+        .alert(isPresented: self.$confirmBackgroundPaste, content: {
+            return Alert(
+                title: Text("Paste Background"),
+                message: Text("Replace your background with \(UIPasteboard.general.url?.absoluteString ?? "nothing")?."),
+                primaryButton: .default(Text("OK")) {
+                    self.document.backgroundURL = UIPasteboard.general.url
+                },
+                secondaryButton: .cancel()
+            )
+        })
     }
     
-    @State private var steadyStateZoomScale: CGFloat = 1.0
+    @State private var explainBackgroundPaste = false
+    @State private var confirmBackgroundPaste = false
+    
     @State private var emojiSelection = [EmojiArt.Emoji]()
     @GestureState private var gestureZoomScale: CGFloat = 1.0
     @GestureState private var emojiZoomScale: CGFloat = 1.0
@@ -102,7 +144,7 @@ struct EmojiArtDocumentView: View {
     }
     
     private var zoomScale: CGFloat {
-        steadyStateZoomScale * gestureZoomScale
+        document.steadyStateZoomScale * gestureZoomScale
     }
     
     private func tapToUnselect()-> some Gesture  {
@@ -130,18 +172,21 @@ struct EmojiArtDocumentView: View {
                     self.document.scaleEmoji(self.emojiSelection[i], by: finalGestureScale)
                 }
             } else {
-                self.steadyStateZoomScale *= finalGestureScale
+                self.document.steadyStateZoomScale *= finalGestureScale
             }
         }
     }
     
-    @State private var steadyStatePanOffset: CGSize = .zero
     @GestureState private var gesturePanOffset: CGSize = .zero
     @GestureState private var gestureEmojiOffset: CGSize = .zero
     @GestureState private var singleMovedEmoji = MovingEmojiGesture()
     
+    private var isLoading: Bool {
+        document.backgroundURL != nil && document.backgroundImage == nil
+    }
+    
     private var panOffset: CGSize {
-        (steadyStatePanOffset + gesturePanOffset) * zoomScale
+        (document.steadyStatePanOffset + gesturePanOffset) * zoomScale
     }
     
     private func dragEmojiGesture(_ emoji: EmojiArt.Emoji) -> some Gesture {
@@ -170,17 +215,17 @@ struct EmojiArtDocumentView: View {
                     self.document.moveEmoji(self.emojiSelection[i], by: finalDragGestureValue.translation / self.zoomScale)
                 }
             } else {
-                self.steadyStatePanOffset = self.steadyStatePanOffset + (finalDragGestureValue.translation / self.zoomScale)
+                self.document.steadyStatePanOffset = self.document.steadyStatePanOffset + (finalDragGestureValue.translation / self.zoomScale)
             }
         }
     }
     
     private func zoomToFit(_ image: UIImage?, in size: CGSize) {
-        if let image = image, image.size.width > 0, image.size.height > 0  {
+        if let image = image, image.size.width > 0, image.size.height > 0, size.height > 0, size.width > 0  {
             let hZoom = size.width / image.size.width
             let vZoom = size.height / image.size.height
-            self.steadyStatePanOffset = .zero
-            self.steadyStateZoomScale = min(hZoom, vZoom)
+            self.document.steadyStatePanOffset = .zero
+            self.document.steadyStateZoomScale = min(hZoom, vZoom)
         }
     }
     
@@ -200,7 +245,7 @@ struct EmojiArtDocumentView: View {
     
     private func drop(providers: [NSItemProvider], at location: CGPoint) -> Bool {
         var found = providers.loadFirstObject(ofType: URL.self) { url in
-            self.document.setBackgroundURL(url)
+            self.document.backgroundURL = url
         }
         if !found {
             found = providers.loadObjects(ofType: String.self) {string in
@@ -211,7 +256,7 @@ struct EmojiArtDocumentView: View {
     }
     
     private let defaultEmojiSize: CGFloat = 40
-
+    
     struct MovingEmojiGesture {
         var emoji: EmojiArt.Emoji?
         var pan: CGSize = .zero

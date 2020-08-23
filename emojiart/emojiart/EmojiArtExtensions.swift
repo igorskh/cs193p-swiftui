@@ -53,7 +53,8 @@ extension GeometryProxy {
     // converts from some other coordinate space to the proxy's own
     func convert(_ point: CGPoint, from coordinateSpace: CoordinateSpace) -> CGPoint {
         let frame = self.frame(in: coordinateSpace)
-        return CGPoint(x: point.x-frame.origin.x, y: point.y-frame.origin.y)
+        print(point.x, frame.origin.x, self.size.width)
+        return CGPoint(x: point.x, y: point.y-frame.origin.y)
     }
 }
 

@@ -15,8 +15,6 @@ struct OptionalImage: View {
         Group {
             if uiImage != nil {
                 Image(uiImage: uiImage!)
-//                .resizable()
-//                .aspectRatio(contentMode: .fit)
             }
         }
     }

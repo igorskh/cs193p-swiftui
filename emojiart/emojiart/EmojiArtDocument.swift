@@ -60,8 +60,6 @@ class EmojiArtDocument: ObservableObject, Hashable, Identifiable {
         if let i = emojiArt.emojis.firstIndex(matching: emoji) {
             emojiArt.emojis[i].x += Int(offset.width)
             emojiArt.emojis[i].y += Int(offset.height)
-
-            print(emojiArt.emojis[i].x, emojiArt.emojis[i].y)
         }
     }
     

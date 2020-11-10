@@ -38,9 +38,8 @@ struct EmojiArtDocumentChooser: View {
                     Image(systemName: "plus").imageScale(.large)
                 }),
                 trailing: EditButton()
-            )
-                .environment(\.editMode, $editMode)
-        }
+            ).environment(\.editMode, $editMode)
+        }.navigationViewStyle(StackNavigationViewStyle())
     }
 }
 

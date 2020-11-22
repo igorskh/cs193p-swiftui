@@ -128,6 +128,7 @@ struct EmojiArtDocumentView: View {
                 self.zoomToFit(image, in: geometry.size)
             }
             .navigationBarItems(
+                leading: self.pickImage,
                 trailing: Button(action: {
                     if let url = UIPasteboard.general.url, url != self.document.backgroundURL {
                         self.confirmBackgroundPaste = true
@@ -153,6 +154,38 @@ struct EmojiArtDocumentView: View {
                     return self.drop(providers: providers, at: location)
             }
         }.zIndex(-1)
+    }
+    
+    @State private var showImagePicker = false
+    @State private var imagePickerSourceType = UIImagePickerController.SourceType.photoLibrary
+    
+    private var pickImage: some View {
+        HStack {
+            Image(systemName: "photo").imageScale(.large).foregroundColor(.accentColor).onTapGesture {
+                self.imagePickerSourceType = .photoLibrary
+                DispatchQueue.main.async {
+                    self.showImagePicker = true
+                }
+            }
+            if UIImagePickerController.isSourceTypeAvailable(.camera) {
+                Image(systemName: "camera").imageScale(.large).foregroundColor(.accentColor).onTapGesture {
+                    self.imagePickerSourceType = .camera
+                    DispatchQueue.main.async {
+                        self.showImagePicker = true
+                    }
+                }
+            }
+        }
+        .sheet(isPresented: $showImagePicker) {
+            ImagePicker(sourceType: self.imagePickerSourceType) { image in
+                if let image = image {
+                    DispatchQueue.main.async {
+                        self.document.backgroundURL = image.storeInFilesystem()
+                    }
+                }
+                showImagePicker = false
+            }
+        }
     }
     
     private func tapToUnselect()-> some Gesture  {

@@ -42,6 +42,29 @@ class EmojiArtDocument: ObservableObject, Hashable, Identifiable {
         }
     }
     
+    var url: URL? {
+        didSet {
+            self.save(self.emojiArt)
+        }
+    }
+    
+    init(url: URL) {
+        self.id = UUID()
+        self.url = url
+        self.emojiArt = EmojiArt(json: try? Data(contentsOf: url)) ?? EmojiArt()
+        
+        fetchBackgrounImageData()
+        autosaveCancellable = $emojiArt.sink { emojiArt in
+            self.save(emojiArt)
+        }
+    }
+    
+    private func save(_ emojiArt: EmojiArt) {
+        if let url = url {
+            try? emojiArt.json?.write(to: url)
+        }
+    }
+    
     // MARK: - Intent(s)
     
     func removeEmoji(_ emoji: EmojiArt.Emoji) {
@@ -60,8 +83,6 @@ class EmojiArtDocument: ObservableObject, Hashable, Identifiable {
         if let i = emojiArt.emojis.firstIndex(matching: emoji) {
             emojiArt.emojis[i].x += Int(offset.width)
             emojiArt.emojis[i].y += Int(offset.height)
-
-            print(emojiArt.emojis[i].x, emojiArt.emojis[i].y)
         }
     }
     

@@ -19,102 +19,9 @@ struct EmojiArtDocumentView: View {
     
     var body: some View {
         VStack {
-            HStack {
-                PaletteChooser(document: document, chosenPalette: $chosenPalette)
-                ScrollView(.horizontal) {
-                    HStack {
-                        ForEach(chosenPalette.map{ String($0) }, id: \.self) {emoji in
-                            Text(emoji)
-                                .font(Font.system(size: self.defaultEmojiSize))
-                                .onDrag{ NSItemProvider(object: emoji as NSString) }
-                        }
-                    }
-                }
-            }.padding(.horizontal)
-            
-            GeometryReader { geometry in
-                ZStack {
-                    Color.black.overlay(
-                        OptionalImage(uiImage: self.document.backgroundImage)
-                            .scaleEffect(self.zoomScale)
-                            .offset(self.panOffset)
-                    )
-                        // TODO: deal with delay on single tap ?
-                        .gesture(self.doubleTapToZoom(in: geometry.size))
-                        .gesture(self.tapToUnselect())
-                    
-                    if self.isLoading {
-                        Image(systemName: "hourglass").imageScale(.large).spinning()
-                    } else {
-                        ForEach(self.document.emojis) {emoji in
-                            ZStack {
-                                Text(emoji.text)
-                                    .border(Color.gray, width: self.emojiSelection.contains(matching: emoji) ? 2 : 0)
-                                    .font(animatableWithSize: emoji.fontSize*self.zoomScale*(self.emojiSelection.contains(matching: emoji) ? self.emojiZoomScale : 1.0))
-                                    .position(self.position(for: emoji, in: geometry.size))
-                                    .onTapGesture {
-                                        self.toggleEmojiSelection(emoji)
-                                }
-                                .gesture(self.dragEmojiGesture(emoji))
-                            }
-                        }
-                    }
-                }
-                .gesture(self.panGesture())
-                .gesture(self.zoomGesture())
-                .onReceive(self.document.$backgroundImage) {image in
-                    self.zoomToFit(image, in: geometry.size)
-                }
-                .navigationBarItems(
-                    trailing: Button(action: {
-                        if let url = UIPasteboard.general.url, url != self.document.backgroundURL {
-                            self.confirmBackgroundPaste = true
-                        } else {
-                            self.explainBackgroundPaste = true
-                        }
-                    }, label: {
-                        Image(systemName: "doc.on.clipboard").imageScale(.large)
-                            .alert(isPresented: self.$explainBackgroundPaste, content: {
-                                return Alert(
-                                    title: Text("Paste Background"),
-                                    message: Text("Copy URL of an image to the clipboard and touch this button to make it the background of your document."),
-                                    dismissButton: .default(Text("OK"))
-                                )
-                            })
-                    })
-                )
-                .onDrop(of: ["public.image", "public.text"], isTargeted: nil) { providers, location in
-                    var location = geometry.convert(location, from: .global)
-                    location = CGPoint(x: location.x - geometry.size.width/2, y: location.y - geometry.size.height/2)
-                    location = CGPoint(x: location.x - self.panOffset.width, y: location.y - self.panOffset.height)
-                    location = CGPoint(x: location.x / self.zoomScale, y: location.y / self.zoomScale)
-                    return self.drop(providers: providers, at: location)
-                }
-            }.zIndex(-1)
-            
-            ScrollView(.horizontal) {
-                HStack {
-                    
-                    Button(action: {
-                        self.document.clearEmojis()
-                        self.document.backgroundURL = nil
-                    }) {
-                        Image(systemName: "clear")
-                    }
-                    if emojiSelection.count > 0 {
-                        Button(action: {
-                            while self.emojiSelection.count > 0 {
-                                let emoji = self.emojiSelection.popLast()!
-                                self.document.removeEmoji(emoji)
-                            }
-                        }) {
-                            Image(systemName: "trash")
-                        }
-                    }
-                    
-                }.padding(10.0)
-                    .font(.largeTitle)
-            }
+            canvasPalette()
+            documentCanvas()
+            canvasControls()
         }
         .alert(isPresented: self.$confirmBackgroundPaste, content: {
             return Alert(
@@ -145,6 +52,107 @@ struct EmojiArtDocumentView: View {
     
     private var zoomScale: CGFloat {
         document.steadyStateZoomScale * gestureZoomScale
+    }
+    
+    private func canvasPalette() -> some View {
+        HStack {
+            PaletteChooser(document: document, chosenPalette: $chosenPalette)
+            ScrollView(.horizontal) {
+                HStack {
+                    ForEach(chosenPalette.map{ String($0) }, id: \.self) {emoji in
+                        Text(emoji)
+                            .font(Font.system(size: self.defaultEmojiSize))
+                            .onDrag{ NSItemProvider(object: emoji as NSString) }
+                    }
+                }
+            }
+        }.padding(.horizontal)
+    }
+    
+    private func canvasControls() -> some View {
+        HStack {
+            Button(action: {
+                self.document.clearEmojis()
+                self.document.backgroundURL = nil
+            }) {
+                Image(systemName: "clear")
+            }
+            if emojiSelection.count > 0 {
+                Button(action: {
+                    while self.emojiSelection.count > 0 {
+                        let emoji = self.emojiSelection.popLast()!
+                        self.document.removeEmoji(emoji)
+                    }
+                }) {
+                    Image(systemName: "trash")
+                }
+            }
+            
+        }.padding(10.0)
+            .font(.largeTitle)
+    }
+    
+    private func documentCanvas() -> some View  {
+        GeometryReader { geometry in
+            ZStack {
+                Color.black.overlay(
+                    OptionalImage(uiImage: self.document.backgroundImage)
+                        .scaleEffect(self.zoomScale)
+                        .offset(self.panOffset)
+                )
+                    // TODO: deal with delay on single tap ?
+                    .gesture(self.doubleTapToZoom(in: geometry.size))
+                    .gesture(self.tapToUnselect())
+                
+                if self.isLoading {
+                    Image(systemName: "hourglass").imageScale(.large).spinning()
+                } else {
+                    ForEach(self.document.emojis) {emoji in
+                        ZStack {
+                            Text(emoji.text)
+                                .border(Color.gray, width: self.emojiSelection.contains(matching: emoji) ? 2 : 0)
+                                .font(animatableWithSize: emoji.fontSize*self.zoomScale*(self.emojiSelection.contains(matching: emoji) ? self.emojiZoomScale : 1.0))
+                                .position(self.position(for: emoji, in: geometry.size))
+                                .onTapGesture {
+                                    self.toggleEmojiSelection(emoji)
+                            }
+                            .gesture(self.dragEmojiGesture(emoji))
+                        }
+                    }
+                }
+            }
+            .clipped()
+            .gesture(self.panGesture())
+            .gesture(self.zoomGesture())
+            .onReceive(self.document.$backgroundImage) {image in
+                self.zoomToFit(image, in: geometry.size)
+            }
+            .navigationBarItems(
+                trailing: Button(action: {
+                    if let url = UIPasteboard.general.url, url != self.document.backgroundURL {
+                        self.confirmBackgroundPaste = true
+                    } else {
+                        self.explainBackgroundPaste = true
+                    }
+                }, label: {
+                    Image(systemName: "doc.on.clipboard").imageScale(.large)
+                        .alert(isPresented: self.$explainBackgroundPaste, content: {
+                            return Alert(
+                                title: Text("Paste Background"),
+                                message: Text("Copy URL of an image to the clipboard and touch this button to make it the background of your document."),
+                                dismissButton: .default(Text("OK"))
+                            )
+                        })
+                })
+            )
+                .onDrop(of: ["public.image", "public.text"], isTargeted: nil) { providers, location in
+                    var location = geometry.convert(location, from: .global)
+                    location = CGPoint(x: location.x - geometry.size.width/2, y: location.y - geometry.size.height/2)
+                    location = CGPoint(x: location.x - self.panOffset.width, y: location.y - self.panOffset.height)
+                    location = CGPoint(x: location.x / self.zoomScale, y: location.y / self.zoomScale)
+                    return self.drop(providers: providers, at: location)
+            }
+        }.zIndex(-1)
     }
     
     private func tapToUnselect()-> some Gesture  {

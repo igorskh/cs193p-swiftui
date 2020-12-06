@@ -128,6 +128,9 @@ struct EmojiArtDocumentView: View {
                 self.zoomToFit(image, in: geometry.size)
             }
             .navigationBarItems(
+                leading: PickImageView(onImageChoose: { image in
+                    self.document.backgroundURL = image.storeInFilesystem()
+                }),
                 trailing: Button(action: {
                     if let url = UIPasteboard.general.url, url != self.document.backgroundURL {
                         self.confirmBackgroundPaste = true
